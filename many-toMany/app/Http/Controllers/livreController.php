@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Catégorie;
 use App\Models\Livre;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class livreController extends Controller
 {
@@ -13,8 +14,12 @@ class livreController extends Controller
      */
     public function index()
     {
-        $livres = Livre::all();
-        return view('livres.index',compact('livres'));
+        // $livres=Livre::all();
+        $livres = Cache::remember('livres', 30, function () {
+            return Livre::all();
+        });
+
+        return view('livres.index', compact('livres'));
     }
 
     public function create(){
@@ -60,13 +65,16 @@ class livreController extends Controller
         $imagePath = 'uploads/livres/' . $filename;
     }
 
-    Livre::create([
+    $livre=Livre::create([
         'titre' => $request->titre,
         'catégorie_id' => $request->catégorie_id,
         'pages' => $request->pages,
         'description' => $request->description,
         'image' => $imagePath,
     ]);
+
+    Cache::put('livre_'.$livre->id, $livre,10);
+    // Cache::put('titre', $livre->titre,300);
 
     return redirect()->route('livres.index')->with('success', 'Livre added successfully');
 }
@@ -77,8 +85,23 @@ class livreController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Tente de récupérer le livre depuis le cache
+        $livrePrefix = 'livre_' . $id;
+    
+        // if (!Cache::has($livrePrefix)) {
+        //     $livre = Cache::get($livrePrefix);
+        // }else{
+        //     $livre = Livre::findOrFail($id);
+        //     Cache::put('livre_'.$id, $livre,10);
+        // }
+        $livre = Cache::remember($livrePrefix, 10, function() use ($id){
+            return  Livre::findOrFail($id);
+        });
+
+        return view('livres.show', compact('livre'));
     }
+    
+
 
     /**
      * Update the specified resource in storage.
@@ -106,10 +129,25 @@ class livreController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // public function destroy(string $id)
+    // {
+    //     $livre = Livre::find($id);
+    //     $livre->delete();
+    //     Cache::forget('livre_'.$id);
+    //     return redirect()->route('livres.index')->with('success','livre deleted seccessfully');
+    // }
+
     public function destroy(string $id)
-    {
-        $livre = Livre::find($id);
+{
+    $livre = Livre::find($id);
+    
+    if ($livre) {
         $livre->delete();
-        return redirect()->route('livres.index')->with('success','livre deleted seccessfully');
+        Cache::forget('livre_' . $id);
+        return redirect()->route('livres.index')->with('success', 'Livre deleted successfully');
+    } else {
+        return redirect()->route('livres.index')->with('error', 'Livre not found');
     }
+}
+
 }
