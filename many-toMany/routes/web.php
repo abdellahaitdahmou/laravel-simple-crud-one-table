@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', categorieController::class . '@index')->name('catégorie.index');
 Route::get('/catégories/create', categorieController::class . '@create')->name('catégorie.create');
 Route::post('/catégories', categorieController::class . '@store')->name('catégorie.store');
-Route::get('/categories/{catégorie}/edit', categorieController::class . '@edit')->name('catégorie.edit');
+Route::get('/catégories/{catégorie}/edit', categorieController::class . '@edit')->name('catégorie.edit');
 Route::put('catégories/{catégorie}',categorieController::class . '@update')->name('catégorie.update');
 Route::delete('catégories/{catégorie}',categorieController::class . '@destroy')->name('catégorie.destroy');
 

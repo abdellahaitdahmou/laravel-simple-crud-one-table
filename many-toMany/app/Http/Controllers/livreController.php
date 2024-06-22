@@ -62,10 +62,10 @@ class livreController extends Controller
         // Move the uploaded file to the desired directory
         $file->move('uploads/livres/', $filename);
         // Update the 'image' field in your data array
-        $imagePath = 'uploads/livres/' . $filename;
+        $imagePath = 'uploads/livres/'. $filename;
     }
 
-    $livre=Livre::create([
+    $livre = Livre::create([
         'titre' => $request->titre,
         'catégorie_id' => $request->catégorie_id,
         'pages' => $request->pages,
